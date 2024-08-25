@@ -1,13 +1,25 @@
-import { Request, Response } from "express";
+import { query, Request, Response } from "express";
 import { Task } from "../entities/Task-entity";
 import dataSource from "../datasource/datasource";
+import jwt from "jsonwebtoken";
+import { User } from "../entities/User-entity";
+const JWT_SECRET = process.env.JWT_SECRET || "GoKapture@123";
 
 const taskRepo = dataSource.getRepository(Task);
+let userRepo = dataSource.getRepository(User);
 
-/* Create task */
+/* Create task : only admin can create task */
 export const CreateTask = async (req: Request, res: Response) => {
   try {
     const { title, description, status, priority, dueDate, userId } = req.body;
+    const token = req.cookies["token"];
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: number;
+    };
+    const user = await userRepo.findOne({ where: { id: decoded.userId } });
+
+    if (user?.role !== "admin")
+      return res.status(401).json({ message: "Unauthorized access" });
 
     const newTask = new Task();
     newTask.title = title;
@@ -27,27 +39,69 @@ export const CreateTask = async (req: Request, res: Response) => {
   }
 };
 
-/* Get tasks */
+/* Get tasks with pagination and role 
+   admin can access all tasks while user can access only there tasks
+*/
 export const GetTasks = async (req: Request, res: Response) => {
   try {
-    const tasks = await taskRepo.find();
+    const token = req.cookies["token"];
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: number;
+    };
+    const user = await userRepo.findOne({ where: { id: decoded.userId } });
 
-    res.status(200).json(tasks);
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const pageSize = 3;
+
+    const offset = (page - 1) * pageSize;
+    const limit = pageSize;
+
+    let query: any = { skip: offset, take: limit };
+
+    if (user?.role === "user") {
+      query.where = { userId: decoded.userId };
+    }
+
+    const [tasks, total] = await taskRepo.findAndCount(query);
+
+    const hasMore = tasks.length === limit && offset + limit < total;
+
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: "No tasks found" });
+    }
+
+    res.status(200).json({
+      tasks,
+      pagination: {
+        currentPage: page,
+        pageSize,
+        totalTasks: total,
+        hasMore,
+      },
+    });
   } catch (error) {
     console.error("Error fetching tasks:", error);
-    res.status(500).json({ message: "Failed to retrieve tasks" });
+    res.status(500).json({ message: "Failed to retrieve tasks", error: error });
   }
 };
 
-/* Update task */
+/* Update task : only admin and user assigned to task can update */
 export const UpdateTask = async (req: Request, res: Response) => {
   try {
+    const token = req.cookies["token"];
     const { title, description, status, priority, dueDate, userId } = req.body;
     const { taskId } = req.params as { taskId: string };
-    const taskIdNumber = parseInt(taskId, 10);
 
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: number;
+    };
+    const user = await userRepo.findOne({ where: { id: decoded.userId } });
+
+    const taskIdNumber = parseInt(taskId, 10);
     const task = await taskRepo.findOne({ where: { id: taskIdNumber } });
 
+    if (user?.role !== "admin" || task?.userId !== user?.id)
+      return res.status(401).json({ message: "Unauthorized access" });
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
@@ -67,15 +121,21 @@ export const UpdateTask = async (req: Request, res: Response) => {
   }
 };
 
-/* Delete task */
+/* Delete task : only admin can delete the task */
 export const DeleteTask = async (req: Request, res: Response) => {
   try {
+    const token = req.cookies["token"];
     const { taskId } = req.params as { taskId: string };
-    console.log("🚀 ~ DeleteTask ~ taskId:", taskId);
+
+    const decoded = jwt.verify(token, JWT_SECRET) as {
+      userId: number;
+    };
+    const user = await userRepo.findOne({ where: { id: decoded.userId } });
+    if (user?.role !== "admin")
+      return res.status(401).json({ message: "Unauthorized access" });
+
     const taskIdNumber = parseInt(taskId, 10);
-
     const task = await taskRepo.findOne({ where: { id: taskIdNumber } });
-
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }

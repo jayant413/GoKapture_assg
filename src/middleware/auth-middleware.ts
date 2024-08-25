@@ -1,6 +1,13 @@
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+const JWT_SECRET = process.env.JWT_SECRET || "GoKapture@123";
 
-export const AuthMiddleware = (
+import dataSource from "../datasource/datasource";
+import { User } from "../entities/User-entity";
+
+let userRepo = dataSource.getRepository(User);
+
+export const AuthMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -9,6 +16,14 @@ export const AuthMiddleware = (
     const token = req.cookies["token"];
     if (!token) {
       return res.status(401).json({ message: "No token provided" });
+    }
+    const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
+    const userIdNumber = decoded.userId;
+
+    const user = await userRepo.findOne({ where: { id: userIdNumber } });
+
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized access" });
     }
 
     next();

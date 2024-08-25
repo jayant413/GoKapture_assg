@@ -9,7 +9,7 @@
 run the below command in project's directory to create docker's postgres image
 
 ```
-docker-compost up -d
+docker-compose up -d
 ```
 
 _or_

@@ -4,10 +4,12 @@ import dataSource from "./src/datasource/datasource";
 import "colors";
 import { User } from "./src/entities/User-entity";
 import apiRoute from "./src/routes";
+import cookieParser from "cookie-parser";
 
 const PORT = 3000;
 const app = express();
 app.use(express.json());
+app.use(cookieParser());
 
 // Middleware to parse URL-encoded bodies (from forms)
 // app.use(express.urlencoded({ extended: true }));
@@ -24,13 +26,6 @@ dataSource
   });
 
 // app.use("/", async (req: Request, res: Response) => {
-// let userRepo = dataSource.getRepository(User);
-
-// const user1 = new User();
-// user1.username = "Jayant";
-// user1.password = "jayantss";
-
-// res.json(await userRepo.save(user1));
 //   res.send("Welcome to GoKapture");
 // });
 

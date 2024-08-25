@@ -23,10 +23,6 @@ dataSource
     console.log("DataSource connection failed ".bgRed.white, err);
   });
 
-app.use("/", async (req: Request, res: Response) => {
-  res.send("Welcome to GoKapture");
-});
-
 app.use("/api", apiRoute);
 
 app.listen(PORT, () => {

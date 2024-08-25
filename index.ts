@@ -2,17 +2,15 @@ import "reflect-metadata";
 import express, { Request, Response } from "express";
 import dataSource from "./src/datasource/datasource";
 import "colors";
-import { User } from "./src/entities/User-entity";
 import apiRoute from "./src/routes";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const app = express();
+dotenv.config();
 app.use(express.json());
 app.use(cookieParser());
-
-// Middleware to parse URL-encoded bodies (from forms)
-// app.use(express.urlencoded({ extended: true }));
 
 dataSource
   .initialize()
@@ -25,9 +23,9 @@ dataSource
     console.log("DataSource connection failed ".bgRed.white, err);
   });
 
-// app.use("/", async (req: Request, res: Response) => {
-//   res.send("Welcome to GoKapture");
-// });
+app.use("/", async (req: Request, res: Response) => {
+  res.send("Welcome to GoKapture");
+});
 
 app.use("/api", apiRoute);
 

@@ -8,7 +8,7 @@ const dataSource = new DataSource({
   username: "root",
   password: "jayantss",
   database: "root",
-  logging: true,
+  //   logging: true,
   synchronize: true,
   entities: [User],
 });

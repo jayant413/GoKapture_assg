@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres
-    container_name: GoKapture_db    \
+    container_name: GoKapture_db_Jayant
     ports:
       - "5432:5432"
     environment:

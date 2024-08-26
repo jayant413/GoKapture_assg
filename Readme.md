@@ -9,13 +9,13 @@
 run the below command in project's directory to create docker's postgres image
 
 ```
-docker-compose up -d
+docker-compose up 
 ```
 
 _or_
 
 ```
-docker run --name GoKapture_db -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -e POSTGRES_DB=root -d postgres
+docker run --name GoKapture_db_Jayant -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=root -e POSTGRES_DB=root -d postgres
 ```
 
 **Create `.env` file and below environment variables**
@@ -94,7 +94,7 @@ docker run --name GoKapture_db -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PA
 
     _admin can view all tasks and user can see tasks assigned to them_
 
-    **page is query number to get tasks as per pagination default tasks in a single page is 3**
+    **page is query number to get tasks as per pagination default tasks in a single page is 5**
 
 5.  #### Update task (Method : PUT) http://localhost:3000/api/tasks/${taskId}
 

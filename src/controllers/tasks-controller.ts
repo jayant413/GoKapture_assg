@@ -51,7 +51,7 @@ export const GetTasks = async (req: Request, res: Response) => {
     const user = await userRepo.findOne({ where: { id: decoded.userId } });
 
     const page = parseInt(req.query.page as string, 10) || 1;
-    const pageSize = 3;
+    const pageSize = 5;
 
     const offset = (page - 1) * pageSize;
     const limit = pageSize;
@@ -100,11 +100,11 @@ export const UpdateTask = async (req: Request, res: Response) => {
     const taskIdNumber = parseInt(taskId, 10);
     const task = await taskRepo.findOne({ where: { id: taskIdNumber } });
 
-    if (user?.role !== "admin" || task?.userId !== user?.id)
-      return res.status(401).json({ message: "Unauthorized access" });
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
+    if (user?.role !== "admin" || task?.userId !== user?.id)
+      return res.status(401).json({ message: "Unauthorized access" });
 
     task.title = title ?? task.title;
     task.description = description ?? task.description;
